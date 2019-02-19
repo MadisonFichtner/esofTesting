@@ -2,6 +2,8 @@ package Participation;
 import org.junit.* ;
 import static org.junit.Assert.* ;
 
+import java.util.Map;
+
 /**
  * This is just a simple template for Junit test-class for testing
  * the class ApplicationLogic. Testing this class is a bit more
@@ -24,48 +26,29 @@ public class ApplicationLogic_test {
 	
 	
 	@Test
-	public void test1() {
-		// We'll always begin by reseting the database. This makes sure
-		// the test start from a clean, well defined state of the database.
-		// In this case it would be just an empty database, though it 
-		// doesn't have to be like that.
-		setupDB() ;
-		
-		System.out.println("** Testing add customer...") ;
-		
-		// Creating the target thing you want to test:
-		ApplicationLogic SUT = new ApplicationLogic() ;
-		
-		// Now let's perform some testing. If we add a customer to the system,
-		// test that this customer should then be really added to the system:
-		int duffyID = SUT.addCustomer("Duffy Duck", "") ;
-		Customer C = SUT.findCustomer(duffyID) ;
-		assertTrue(C.name.equals("Duffy Duck")) ;
-		assertTrue(C.email.equals("")) ;		
-	}
-	
-	// Another example...
-	@Test
-	public void test2() {
+	public void resolveTest() {
 		setupDB() ;
 		ApplicationLogic SUT = new ApplicationLogic() ;
 		
 		System.out.println("** Testing getCostToPay ...") ;
 		
 		int duffyID = SUT.addCustomer("Duffy Duck", "") ;
-		int flowerServiceID = SUT.addService("Flowers online shop", 100) ;
+		int duffyID1 = SUT.addCustomer("Daffy Duck", "") ;
+		int flowerServiceID = SUT.addService("Flowers online shop", 100000) ;
+		int flowerServiceID1 = SUT.addService("Flowers online shop", 100) ;
 		// let Duffy but 2x participations on Flower-online:
 		SUT.addParticipation(duffyID, flowerServiceID) ;
-		SUT.addParticipation(duffyID, flowerServiceID) ;
-
+		SUT.addParticipation(duffyID1, flowerServiceID1) ;
+		SUT.awardDiscount(duffyID, "D1000eur");
+		SUT.awardDiscount(duffyID1, "D1000eur");
 		// Now let's check if the system correctly calculates the participation
 		// cost of Duffy:
-		Customer C = SUT.findCustomer(duffyID) ;
-		assertTrue(C.getCostToPay() == 200) ;
+		Map<Customer,Integer> map = SUT.resolve();
 	}
 	
+	
 	@Test
-	public void test3() {
+	public void removeServiceTest() {
 		setupDB() ;
 		ApplicationLogic SUT = new ApplicationLogic() ;
 		
@@ -75,12 +58,12 @@ public class ApplicationLogic_test {
 		int flowerServiceID = SUT.addService("Flowers online shop", 100) ;
 		// let Duffy but 2x participations on Flower-online:
 		SUT.addParticipation(duffyID, flowerServiceID) ;
-		SUT.addParticipation(duffyID, flowerServiceID) ;
-		int pvalue = SUT.participationValue(duffyID);
-		System.out.println(pvalue);
-		assertTrue((SUT.serviceExists(flowerServiceID) == true) ) ;
-		SUT.removeService(flowerServiceID) ;
+		
+		assertEquals(SUT.serviceExists(flowerServiceID), true)  ;	//Test if service was corectly added and is available
+		SUT.removeService(flowerServiceID) ;	//Remove service (only one exists)
  
-		assertTrue((SUT.serviceExists(flowerServiceID) == false) ) ;
+		assertEquals(SUT.serviceExists(flowerServiceID), false) ;	//Test if service was correctly removed and is no longer available
+		SUT.removeService(flowerServiceID);							//Try removing service again despite it already being removed
+		assertEquals(SUT.serviceExists(flowerServiceID), false);	//Should return false since there are no services at all.
 	}
 }
